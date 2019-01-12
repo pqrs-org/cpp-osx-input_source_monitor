@@ -3,23 +3,20 @@
 #include <pqrs/osx/input_source_monitor.hpp>
 
 namespace {
-std::shared_ptr<pqrs::osx::input_source_monitor> global_monitor;
+auto global_wait = pqrs::make_thread_wait();
 }
 
 int main(void) {
   std::signal(SIGINT, [](int) {
-    // Destroy monitor before `CFRunLoopStop(CFRunLoopGetMain())`.
-    global_monitor = nullptr;
-
-    CFRunLoopStop(CFRunLoopGetMain());
+    global_wait->notify();
   });
 
   auto time_source = std::make_shared<pqrs::dispatcher::hardware_time_source>();
   auto dispatcher = std::make_shared<pqrs::dispatcher::dispatcher>(time_source);
 
-  global_monitor = std::make_shared<pqrs::osx::input_source_monitor>(dispatcher);
+  auto monitor = std::make_shared<pqrs::osx::input_source_monitor>(dispatcher);
 
-  global_monitor->input_source_changed.connect([](auto&& input_source_ptr) {
+  monitor->input_source_changed.connect([](auto&& input_source_ptr) {
     if (input_source_ptr) {
       std::cout << "input_source_changed: ";
       dispatch_sync(
@@ -33,13 +30,23 @@ int main(void) {
     }
   });
 
-  global_monitor->async_start();
+  monitor->async_start();
+
+  std::thread thread([&monitor] {
+    global_wait->wait_notice();
+
+    monitor = nullptr;
+
+    CFRunLoopStop(CFRunLoopGetMain());
+  });
 
   // ============================================================
 
   CFRunLoopRun();
 
   // ============================================================
+
+  thread.join();
 
   dispatcher->terminate();
   dispatcher = nullptr;
