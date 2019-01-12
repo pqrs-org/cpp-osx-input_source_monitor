@@ -44,6 +44,7 @@ public:
 
       started_ = true;
 
+      // `static_input_source_changed_callback` will be called on the main thread.
       CFNotificationCenterAddObserver(CFNotificationCenterGetDistributedCenter(),
                                       this,
                                       static_input_source_changed_callback,
@@ -69,10 +70,14 @@ private:
       return;
     }
 
-    CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(),
-                                       this,
-                                       kTISNotifySelectedKeyboardInputSourceChanged,
-                                       nullptr);
+    dispatch_sync(
+        dispatch_get_main_queue(),
+        ^{
+          CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(),
+                                             this,
+                                             kTISNotifySelectedKeyboardInputSourceChanged,
+                                             nullptr);
+        });
 
     started_ = false;
   }
