@@ -66,6 +66,18 @@ public:
     return *this;
   }
 
+  bool operator==(const properties& other) const {
+    return input_source_id_ == other.input_source_id_ &&
+           localized_name_ == other.localized_name_ &&
+           input_mode_id_ == other.input_mode_id_ &&
+           languages_ == other.languages_ &&
+           first_language_ == other.first_language_;
+  }
+
+  bool operator!=(const properties& other) const {
+    return !(*this == other);
+  }
+
 private:
   std::optional<std::string> input_source_id_;
   std::optional<std::string> localized_name_;
@@ -76,3 +88,18 @@ private:
 } // namespace input_source
 } // namespace osx
 } // namespace pqrs
+
+namespace std {
+template <>
+struct hash<pqrs::osx::input_source::properties> final {
+  std::size_t operator()(const pqrs::osx::input_source::properties& value) const {
+    size_t h = 0;
+
+    if (auto& input_source_id = value.get_input_source_id()) {
+      h = std::hash<std::string>{}(*input_source_id);
+    }
+
+    return h;
+  }
+};
+} // namespace std
