@@ -19,13 +19,9 @@ int main(void) {
   monitor->input_source_changed.connect([](auto&& input_source_ptr) {
     if (input_source_ptr) {
       std::cout << "input_source_changed: ";
-      dispatch_sync(
-          dispatch_get_main_queue(),
-          ^{
-            if (auto input_source_id = pqrs::osx::input_source::make_input_source_id(*input_source_ptr)) {
-              std::cout << *input_source_id;
-            }
-          });
+      if (auto input_source_id = pqrs::osx::input_source::make_input_source_id(*input_source_ptr)) {
+        std::cout << *input_source_id;
+      }
       std::cout << std::endl;
     }
   });

@@ -70,18 +70,17 @@ private:
       return;
     }
 
-    dispatch_sync(
-        dispatch_get_main_queue(),
-        ^{
-          CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(),
-                                             this,
-                                             kTISNotifySelectedKeyboardInputSourceChanged,
-                                             nullptr);
-        });
+    gcd::dispatch_sync_on_main_queue(^{
+      CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(),
+                                         this,
+                                         kTISNotifySelectedKeyboardInputSourceChanged,
+                                         nullptr);
+    });
 
     started_ = false;
   }
 
+  // This method will be called on the main thread.
   static void static_input_source_changed_callback(CFNotificationCenterRef center,
                                                    void* observer,
                                                    CFStringRef notification_name,
@@ -93,17 +92,14 @@ private:
     }
   }
 
+  // This method will be called on the main thread.
   void input_source_changed_callback(void) {
     enqueue_to_dispatcher([this] {
-      dispatch_sync(
-          dispatch_get_main_queue(),
-          ^{
-            if (auto input_source = osx::input_source::make_current_keyboard_input_source()) {
-              enqueue_to_dispatcher([this, input_source] {
-                input_source_changed(input_source);
-              });
-            }
-          });
+      if (auto input_source = osx::input_source::make_current_keyboard_input_source()) {
+        enqueue_to_dispatcher([this, input_source] {
+          input_source_changed(input_source);
+        });
+      }
     });
   }
 
