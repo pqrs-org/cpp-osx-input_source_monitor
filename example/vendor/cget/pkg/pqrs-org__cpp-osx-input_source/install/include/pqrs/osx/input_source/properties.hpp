@@ -96,7 +96,8 @@ struct hash<pqrs::osx::input_source::properties> final {
     size_t h = 0;
 
     if (auto& input_source_id = value.get_input_source_id()) {
-      h = std::hash<std::string>{}(*input_source_id);
+      h += std::hash<std::string>{}(*input_source_id);
+      h <<= 1;
     }
 
     return h;
