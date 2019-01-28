@@ -9,8 +9,8 @@
 namespace pqrs {
 namespace osx {
 namespace input_source {
-inline std::size_t hash_value(const pqrs::osx::input_source::properties& value) {
-  return std::hash<pqrs::osx::input_source::properties>{}(value);
+inline std::size_t hash_value(const properties& value) {
+  return std::hash<properties>{}(value);
 }
 } // namespace input_source
 } // namespace osx
