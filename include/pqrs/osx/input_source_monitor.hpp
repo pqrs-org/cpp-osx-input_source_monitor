@@ -18,7 +18,7 @@ namespace pqrs {
 namespace osx {
 class input_source_monitor final : public dispatcher::extra::dispatcher_client {
 public:
-  // Signals (invoked from the shared dispatcher thread)
+  // Signals (invoked from the dispatcher thread)
 
   nod::signal<void(cf::cf_ptr<TISInputSourceRef>)> input_source_changed;
 
