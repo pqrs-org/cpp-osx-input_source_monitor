@@ -4,7 +4,7 @@
 
 // (C) Copyright Takayama Fumihiko 2019.
 // Distributed under the Boost Software License, Version 1.0.
-// (See http://www.boost.org/LICENSE_1_0.txt)
+// (See https://www.boost.org/LICENSE_1_0.txt)
 
 // `pqrs::osx::input_source_monitor` can be used safely in a multi-threaded environment.
 
@@ -13,9 +13,9 @@
 #include <nod/nod.hpp>
 #include <pqrs/dispatcher.hpp>
 #include <pqrs/osx/input_source.hpp>
+#include <utility>
 
-namespace pqrs {
-namespace osx {
+namespace pqrs::osx {
 class input_source_monitor final : public dispatcher::extra::dispatcher_client {
 public:
   // Signals (invoked from the dispatcher thread)
@@ -26,17 +26,18 @@ public:
 
   input_source_monitor(const input_source_monitor&) = delete;
 
-  input_source_monitor(std::weak_ptr<dispatcher::dispatcher> weak_dispatcher) : dispatcher_client(weak_dispatcher),
-                                                                                started_(false) {
+  explicit input_source_monitor(std::weak_ptr<dispatcher::dispatcher> weak_dispatcher)
+      : dispatcher_client(std::move(weak_dispatcher)),
+        started_(false) {
   }
 
-  virtual ~input_source_monitor(void) {
+  ~input_source_monitor() override {
     detach_from_dispatcher([this] {
       stop();
     });
   }
 
-  void async_start(void) {
+  void async_start() {
     enqueue_to_dispatcher([this] {
       if (started_) {
         return;
@@ -58,14 +59,14 @@ public:
     });
   }
 
-  void async_stop(void) {
+  void async_stop() {
     enqueue_to_dispatcher([this] {
       stop();
     });
   }
 
 private:
-  void stop(void) {
+  void stop() {
     if (!started_) {
       return;
     }
@@ -81,11 +82,11 @@ private:
   }
 
   // This method will be called on the main thread.
-  static void static_input_source_changed_callback(CFNotificationCenterRef center,
+  static void static_input_source_changed_callback(CFNotificationCenterRef,
                                                    void* observer,
-                                                   CFStringRef notification_name,
-                                                   const void* observed_object,
-                                                   CFDictionaryRef user_info) {
+                                                   CFStringRef,
+                                                   const void*,
+                                                   CFDictionaryRef) {
     auto self = static_cast<input_source_monitor*>(observer);
     if (self) {
       self->input_source_changed_callback();
@@ -93,7 +94,7 @@ private:
   }
 
   // This method will be called on the main thread.
-  void input_source_changed_callback(void) {
+  void input_source_changed_callback() {
     enqueue_to_dispatcher([this] {
       if (auto input_source = osx::input_source::make_current_keyboard_input_source()) {
         enqueue_to_dispatcher([this, input_source] {
@@ -105,5 +106,4 @@ private:
 
   bool started_;
 };
-} // namespace osx
-} // namespace pqrs
+} // namespace pqrs::osx
