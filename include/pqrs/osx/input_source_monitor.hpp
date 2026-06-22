@@ -79,6 +79,7 @@ private:
     });
 
     started_ = false;
+    last_input_source_.reset();
   }
 
   // This method will be called on the main thread.
@@ -97,6 +98,12 @@ private:
   void input_source_changed_callback() {
     enqueue_to_dispatcher([this] {
       if (auto input_source = osx::input_source::make_current_keyboard_input_source()) {
+        if (cf::equal(last_input_source_, input_source)) {
+          return;
+        }
+
+        last_input_source_ = input_source;
+
         enqueue_to_dispatcher([this, input_source] {
           input_source_changed(input_source);
         });
@@ -105,5 +112,6 @@ private:
   }
 
   bool started_;
+  cf::cf_ptr<TISInputSourceRef> last_input_source_;
 };
 } // namespace pqrs::osx
