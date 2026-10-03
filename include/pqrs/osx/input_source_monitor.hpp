@@ -31,8 +31,7 @@ public:
   input_source_monitor(const input_source_monitor&) = delete;
 
   explicit input_source_monitor(std::weak_ptr<dispatcher::dispatcher> weak_dispatcher)
-      : dispatcher_client(std::move(weak_dispatcher)),
-        started_(false) {
+      : dispatcher_client(std::move(weak_dispatcher)) {
     dispatcher_client_constructor_exception_guard_.initialize();
   }
 
@@ -116,7 +115,7 @@ private:
     });
   }
 
-  bool started_;
+  bool started_{false};
   cf::cf_ptr<TISInputSourceRef> last_input_source_;
 };
 } // namespace pqrs::osx
