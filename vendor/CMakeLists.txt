@@ -13,5 +13,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cpm-cmake-package-lock/cmake/dependency.cmake
 
 copy_vendor_package(nod)
 copy_vendor_package(pqrs_dispatcher)
+copy_vendor_package(pqrs_osx_autorelease_pool)
 copy_vendor_package(pqrs_osx_input_source)
 copy_vendor_package(ut)
